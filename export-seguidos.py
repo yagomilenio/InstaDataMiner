@@ -112,32 +112,25 @@ def obtain_follows(username, seguidores=False):
     return nombres
 
 
-procesar = set([USER])  
-procesados = set()     
-cola = [USER]         
+procesar = set([USER])
 depth = 0
 
-while cola:
-    user = cola.pop(0)  
+while procesar and depth < MAX_DEPTH:
+    nivel_actual = procesar.copy()   
+    procesar.clear()                
 
-    if user in procesados:
-        continue
+    for user in nivel_actual:
+        seguidos = obtain_follows(user)
+        seguidores = obtain_follows(user, seguidores=True)
+
+        for seguido in seguidos:
+            procesar.add(seguido)
+        for seguidor in seguidores:
+            procesar.add(seguidor)
 
     depth += 1
-    if depth >= MAX_DEPTH:
-        break
 
-    seguidos = obtain_follows(user)
-    seguidores = obtain_follows(user, seguidores=True)
 
-    nuevos = set(seguidos + seguidores)
-
-    for nuevo in nuevos:
-        if nuevo not in procesados and nuevo not in procesar:
-            cola.append(nuevo)
-            procesar.add(nuevo)
-
-    procesados.add(user)
 
 
 
