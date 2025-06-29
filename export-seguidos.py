@@ -100,16 +100,30 @@ def obtain_follows(username, seguidores=False):
     print(nombres)
     print(len(nombres))
 
+    if username != USER:
 
-    with open("data.csv", mode="a", newline="", encoding="utf-8") as archivo_csv:
-        escritor = csv.writer(archivo_csv)
+        with open("data.csv", mode="a", newline="", encoding="utf-8") as archivo_csv:
+            escritor = csv.writer(archivo_csv)
 
-        for nombre in nombres:
-            if seguidores:
-                escritor.writerow([nombre, username])
-            else: 
-                escritor.writerow([username, nombre])
+            for nombre in nombres:
+                if seguidores:
+                    escritor.writerow([nombre, username])
+                else: 
+                    escritor.writerow([username, nombre])
     return nombres
+
+
+#checkear usuarios que estan ya en el csv
+
+with open("data.csv") as f:
+  lineas = f.readlines()
+
+usuarios_en_csv = [linea.strip().split(',')[0] for linea in lineas]
+usuarios_en_csv = list(set(usuarios_en_csv))
+usuarios_en_csv.remove(USER)
+
+
+
 
 
 procesar = set([USER])
@@ -120,13 +134,14 @@ while procesar and depth < MAX_DEPTH:
     procesar.clear()                
 
     for user in nivel_actual:
-        seguidos = obtain_follows(user)
-        seguidores = obtain_follows(user, seguidores=True)
+        if user not in usuarios_en_csv:
+            seguidos = obtain_follows(user)
+            seguidores = obtain_follows(user, seguidores=True)
 
-        for seguido in seguidos:
-            procesar.add(seguido)
-        for seguidor in seguidores:
-            procesar.add(seguidor)
+            for seguido in seguidos:
+                procesar.add(seguido)
+            for seguidor in seguidores:
+                procesar.add(seguidor)
 
     depth += 1
 
