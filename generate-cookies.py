@@ -1,4 +1,4 @@
-import undetected_chromedriver as uc
+from selenium import webdriver as uc
 import pickle
 import time
 
