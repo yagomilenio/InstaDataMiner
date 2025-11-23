@@ -14,7 +14,7 @@ def load_proxies():
     proxies = []
     for file in os.listdir(INPUT_FOLDER):
         path = os.path.join(INPUT_FOLDER, file)
-        with open(path, "r") as f:
+        with open(path, "r", encoding="latin1") as f:
             for line in f:
                 line = line.strip()
                 if not line:

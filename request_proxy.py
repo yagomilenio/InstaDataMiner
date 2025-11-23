@@ -22,5 +22,3 @@ def request_with_proxy(method, url, **kwargs):
     raise Exception("Ningún proxy funcionó para esta petición")
 
 
-resp = request_with_proxy("get", "https://httpbin.org/ip")
-print(resp.json())
