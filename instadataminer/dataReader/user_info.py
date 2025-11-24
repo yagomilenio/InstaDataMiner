@@ -15,18 +15,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 
-options = AppiumOptions()
-options.load_capabilities({
-	"appium:platformName": "Android",
-	"appium:automationName": "UiAutomator2",
-	"appium:deviceName": "R58N7077SJD",
-	"appium:appPackage": "com.instagram.android",
-	"appium:appActivity": ".MainActivity",
-	"appium:noReset": True,
-	"appium:uiautomator2ServerInstallTimeout": 90000,
-	"appium:newCommandTimeout": 4000,
-	"appium:connectHardwareKeyboard": True
-})
 
 """
 "platformName": "Android",
@@ -42,7 +30,7 @@ options.load_capabilities({
 
 
 
-driver = webdriver.Remote("http://127.0.0.1:4723", options=options)
+
 
 class UserProfile():
     def __init__(self, username, nombre, descripcion, publicaciones, seguidores, seguidos, business):
@@ -53,12 +41,41 @@ class UserProfile():
         self.seguidores=seguidores
         self.seguidos=seguidos
         self.business=business
+    def __str__(self):
+        return (
+            f"UserProfile(\n"
+            f"  username='{self.username}',\n"
+            f"  nombre='{self.nombre}',\n"
+            f"  descripcion='{self.descripcion}',\n"
+            f"  publicaciones={self.publicaciones},\n"
+            f"  seguidores={self.seguidores},\n"
+            f"  seguidos={self.seguidos},\n"
+            f"  business={self.business}\n"
+            f")"
+        )
 
-def save_to_csv(userProfile):
-    file_exists = os.path.exists("procesed_users.csv")
-    write_header = not file_exists or os.path.getsize("procesed_users.csv") == 0
+def connect():
 
-    with open("procesed_users.csv", mode='a', newline='', encoding='utf-8') as file:
+    options = AppiumOptions()
+    options.load_capabilities({
+        "appium:platformName": "Android",
+        "appium:automationName": "UiAutomator2",
+        "appium:deviceName": "R58N7077SJD",
+        "appium:appPackage": "com.instagram.android",
+        "appium:appActivity": ".MainActivity",
+        "appium:noReset": True,
+        "appium:uiautomator2ServerInstallTimeout": 90000,
+        "appium:newCommandTimeout": 4000,
+        "appium:connectHardwareKeyboard": True
+    })
+    return webdriver.Remote("http://127.0.0.1:4723", options=options)
+
+
+def save_to_csv(userProfile, output_file):
+    file_exists = os.path.exists(output_file)
+    write_header = not file_exists or os.path.getsize(output_file) == 0
+
+    with open(output_file, mode='a', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)  
             if write_header:
                 writer.writerow(["user", "name", "descripcion", "publicaciones", "seguidores", "seguidos", "business"])
@@ -137,36 +154,51 @@ def process_user(driver, username):
 
         return UserProfile(username, nombre_txt, descripcion_txt, publicaciones_txt, seguidores_txt, seguidos_txt, business_txt)
 
+def get_user_info(user):
 
-procesed_usernames = []
-
-with open("procesed_users.csv", "r", encoding="utf-8") as f:
-    for linea in f:
-        partes = linea.strip().split(",") 
-        if partes:                         
-            procesed_usernames.append(partes[0])
+    driver=connect()
+    userProfile = process_user(driver, user)
+    driver.quit()
+    return userProfile
 
 
+def get_users_info(input_file="usuarios.txt", output_file="procesed_users.csv", last_output_file="procesed_users.csv"):
+    if not os.path.exists(input_file):
+        raise FileNotFoundError(f"El fichero de entrada {input_file} no existe")
+
+    driver = connect()
+
+    procesed_usernames = []
+
+    if os.path.exists(last_output_file):
+
+        with open(last_output_file, "r", encoding="utf-8") as f:
+            for linea in f:
+                partes = linea.strip().split(",") 
+                if partes:                         
+                    procesed_usernames.append(partes[0])
 
 
-with open("usuarios.txt", "r", encoding="utf-8") as users:
 
-    for user in users:
 
-        username = user.strip()
-        if username not in procesed_usernames:
+    with open(input_file, "r", encoding="utf-8") as users:
 
-            try:
+        for user in users:
 
-                user_profile = process_user(driver, username)
-                save_to_csv(user_profile)
-            except Exception as e:
-                print(f"[ERROR] - Ocurrió un error con {username}: {e}")
-                traceback.print_exc()
-                driver.quit()
-                driver = webdriver.Remote("http://127.0.0.1:4723", options=options)
+            username = user.strip()
+            if username not in procesed_usernames:
 
-                continue
+                try:
+
+                    user_profile = process_user(driver, username)
+                    save_to_csv(user_profile, output_file)
+                except Exception as e:
+                    print(f"[ERROR] - Ocurrió un error con {username}: {e}")
+                    traceback.print_exc()
+                    driver.quit()
+                    driver = connect()
+
+                    continue
 
 
 

@@ -1,6 +1,6 @@
 import argparse
-import dataReader 
-import miner 
+from miner import limpiar_datos, procesar_datos
+from dataReader import user_info, export_data
 from proxy import test_proxies
 
 def main():
@@ -25,8 +25,19 @@ def main():
     belleza_cmd = subparsers_miner.add_parser("getbeauty", help="Obtiene la belleza de cada cuenta basandose en la foto de perfil")
     belleza_cmd.add_argument("--input-img-folder", help="Directorio de origen de las fotos de perfiles")
 
+    get_user_info_cmd=subparsers.add_parser("getuserinfo", help="Obtiene la informacion de un usuario")
+    get_user_info_cmd.add_argument("-u", "--user", help="Usuario del cual se quiere obtener la informacion")
 
-    options=["option", "cleandata", "getgenders"]
+    get_users_info_cmd=subparsers.add_parser("getusersinfo", help="Obtiene la informacion de una lista de usuarios")
+    get_users_info_cmd.add_argument("-i", "--input-file", help="Fichero con listado de ususarios (usernames)")
+    get_users_info_cmd.add_argument("-o", "--output-file", help="Fichero de salida de usuarios ya procesados")
+    get_users_info_cmd.add_argument("-la", "--last-output-file", help="Ultimo fichero de salida para poder seguir la ejecución desde ese punto")
+
+    get_users_from_user=subparsers.add_parser("getusers", help="Obtiene el listado de seguidos o seguidores de un usuario")
+    get_users_from_user.add_argument("-o", "--output-file", help="Fichero de salida de usuarios ya procesados")
+
+
+    options=["option", "cleandata", "getgenders", "getusersinfo", "getuserinfo", "getusers"]
     args = parser.parse_args()
 
     func_args = {k: v for k, v in vars(args).items() if v is not None and k not in options}
@@ -37,15 +48,22 @@ def main():
 
     if args.option == "miner":
         if args.option.miner == "cleandata":
-            miner.limpiar_datos.clean(**func_args)
+            limpiar_datos.clean(**func_args)
         if args.option.miner == "getgenders":
-            miner.procesar_datos.calcular_genero_from_file(**func_args)
+            procesar_datos.calcular_genero_from_file(**func_args)
         if args.option.miner == "getpopularity":
-            miner.procesar_datos.calcular_popularidad(**func_args)
+            procesar_datos.calcular_popularidad(**func_args)
         if args.option.miner == "getratio":
-            miner.procesar_datos.calcular_influencia(**func_args)
+            procesar_datos.calcular_influencia(**func_args)
         if args.option.miner == "getbeauty":
-            miner.procesar_datos.calcular_belleza(**func_args)
+            procesar_datos.calcular_belleza(**func_args)
+    
+    if args.option == "getuserinfo":
+        print(user_info.get_user_info(**func_args))
+
+    if args.option == "getusersinfo":
+        user_info.get_users_info(**func_args)
+
 
 
 

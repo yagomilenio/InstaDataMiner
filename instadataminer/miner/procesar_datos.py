@@ -1,6 +1,6 @@
 import pandas as pd
 import math
-import request_proxy
+from proxy import request_proxy
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import cv2
 import numpy as np
@@ -20,7 +20,9 @@ class miner:
 
 
 
-    def calcular_genero_from_file(output_file=f"{input_file}_gen"):
+    def calcular_genero_from_file(output_file):
+        if output_file is None:
+            output_file = f"{self.input_file}_gen"
         resultados = []
 
         with ThreadPoolExecutor(max_workers=70) as executor:
