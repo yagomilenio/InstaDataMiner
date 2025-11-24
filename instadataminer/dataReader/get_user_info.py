@@ -3,6 +3,7 @@ from appium.options.common.base import AppiumOptions
 from appium.webdriver.common.appiumby import AppiumBy
 import time
 import csv
+import os
 import traceback
 
 # For W3C actions
@@ -54,9 +55,13 @@ class UserProfile():
         self.business=business
 
 def save_to_csv(userProfile):
+    file_exists = os.path.exists("procesed_users.csv")
+    write_header = not file_exists or os.path.getsize("procesed_users.csv") == 0
 
     with open("procesed_users.csv", mode='a', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)  
+            if write_header:
+                writer.writerow(["user", "name", "descripcion", "publicaciones", "seguidores", "seguidos", "business"])
             writer.writerow([userProfile.username, userProfile.nombre, userProfile.descripcion, userProfile.publicaciones, userProfile.seguidores, userProfile.seguidos, userProfile.business])
 
 def process_user(driver, username):

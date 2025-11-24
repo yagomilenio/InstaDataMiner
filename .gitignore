@@ -2,4 +2,6 @@ venv
 .env
 *.pkl
 chromedriver
-data.csv
+.csv
+.txt
+__pycache__

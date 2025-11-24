@@ -3,17 +3,12 @@ import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock
 
-INPUT_FOLDER = "proxies-to-test"
-OUTPUT_FILE = "proxies-validos"
-MAX_THREADS = 20  
-
 file_lock = Lock()  
 
-
-def load_proxies():
+def load_proxies(inputFolder):
     proxies = []
-    for file in os.listdir(INPUT_FOLDER):
-        path = os.path.join(INPUT_FOLDER, file)
+    for file in os.listdir(inputFolder):
+        path = os.path.join(inputFolder, file)
         with open(path, "r", encoding="latin1") as f:
             for line in f:
                 line = line.strip()
@@ -41,22 +36,22 @@ def test_proxy(proxy):
     return None
 
 
-def write_valid_proxy(proxy):
+def write_valid_proxy(proxy, outputFile):
     tipo, ip, port = proxy
     line = f"{tipo}:{ip}:{port}\n"
 
     with file_lock:
-        with open(OUTPUT_FILE, "a") as f:
+        with open(outputFile, "a") as f:
             f.write(line)
 
 
-def main():
-    proxies = load_proxies()
+def main(input_folder="proxies-to-test", output_file="proxies-validos", threads=10):
+    proxies = load_proxies(input_folder)
     print(f"Proxies cargados: {len(proxies)}")
 
-    open(OUTPUT_FILE, "w").close()
+    open(output_file, "w").close()
 
-    with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
+    with ThreadPoolExecutor(max_workers=threads) as executor:
         future_to_proxy = {executor.submit(test_proxy, p): p for p in proxies}
 
         for future in as_completed(future_to_proxy):
@@ -71,8 +66,5 @@ def main():
                 print(f"{tipo}:{ip}:{port} FAIL")
 
     print(f"\nTodos los proxies procesados.")
-    print(f"Resultados guardados en {OUTPUT_FILE}")
+    print(f"Resultados guardados en {output_file}")
 
-
-if __name__ == "__main__":
-    main()
