@@ -4,6 +4,7 @@ from appium.webdriver.common.appiumby import AppiumBy
 import time
 import csv
 import os
+import base64
 import traceback
 
 # For W3C actions
@@ -81,7 +82,7 @@ def save_to_csv(userProfile, output_file):
                 writer.writerow(["user", "name", "descripcion", "publicaciones", "seguidores", "seguidos", "business"])
             writer.writerow([userProfile.username, userProfile.nombre, userProfile.descripcion, userProfile.publicaciones, userProfile.seguidores, userProfile.seguidos, userProfile.business])
 
-def process_user(driver, username):
+def process_user(driver, username, output_folder):
 
         wait = WebDriverWait(driver, 15)
 
@@ -89,6 +90,8 @@ def process_user(driver, username):
             search = driver.find_element(by=AppiumBy.ID, value="com.instagram.android:id/search_tab")   
             search.click()
         except Exception:
+            borrar_busqueda=driver.find_element(AppiumBy.ANDROID_UIAUTOMATOR, 'new UiSelector().description("Borrar texto")')
+            borrar_busqueda.click()
             driver.press_keycode(4)
 
 
@@ -98,12 +101,18 @@ def process_user(driver, username):
         search_bar_input = driver.find_element(by=AppiumBy.ID, value="com.instagram.android:id/action_bar_search_edit_text")
         search_bar_input.send_keys(username)
 
-        profile = wait.until(EC.presence_of_all_elements_located((AppiumBy.ANDROID_UIAUTOMATOR, 'new UiSelector().resourceId("com.instagram.android:id/row_search_user_container").instance(0)')))
-        if profile:
-            profile[0].click()
-        else:
-            profile = wait.until(EC.presence_of_element_located((AppiumBy.ID, 'com.instagram.android:id/row_search_user_container')))
-            profile.click()
+        profile = wait.until(EC.element_to_be_clickable((AppiumBy.ID, "com.instagram.android:id/row_search_user_container")))
+        profile.click()
+
+
+        print("[DEBUG] - Obteniendo foto de perfil")
+
+        foto_perfil = wait.until(EC.presence_of_element_located((AppiumBy.ID, "com.instagram.android:id/row_profile_header_imageview")))
+        image_base64 = foto_perfil.screenshot_as_base64
+
+        os.makedirs(output_folder, exist_ok=True)
+        with open(f"./{output_folder}/{username}.png", "wb") as f:
+            f.write(base64.b64decode(image_base64))
 
         print("[DEBUG] - Obteniendo nombre")
 
@@ -120,7 +129,15 @@ def process_user(driver, username):
         print(f"\t- {nombre_txt}")
 
         print("[DEBUG] - Obteniendo business")
-        business_list = driver.find_elements(by=AppiumBy.ID, value="com.instagram.android:id/profile_header_business_category")
+        try:
+            business_list = WebDriverWait(driver, 1).until(
+                EC.presence_of_all_elements_located(
+                    (AppiumBy.ID, "com.instagram.android:id/profile_header_business_category")
+                )
+            )
+        except:
+            business_list = []
+        
         business_txt = business_list[0].text if business_list else "Null"
 
         print(f"\t- {business_txt}")
@@ -154,15 +171,15 @@ def process_user(driver, username):
 
         return UserProfile(username, nombre_txt, descripcion_txt, publicaciones_txt, seguidores_txt, seguidos_txt, business_txt)
 
-def get_user_info(user):
+def get_user_info(user, output_folder="img"):
 
     driver=connect()
-    userProfile = process_user(driver, user)
+    userProfile = process_user(driver, user, output_folder)
     driver.quit()
     return userProfile
 
 
-def get_users_info(input_file="usuarios.txt", output_file="procesed_users.csv", last_output_file="procesed_users.csv"):
+def get_users_info(input_file="usuarios.txt", output_file="procesed_users.csv", last_output_file="procesed_users.csv", output_folder="img"):
     if not os.path.exists(input_file):
         raise FileNotFoundError(f"El fichero de entrada {input_file} no existe")
 
@@ -190,7 +207,7 @@ def get_users_info(input_file="usuarios.txt", output_file="procesed_users.csv", 
 
                 try:
 
-                    user_profile = process_user(driver, username)
+                    user_profile = process_user(driver, username, output_folder)
                     save_to_csv(user_profile, output_file)
                 except Exception as e:
                     print(f"[ERROR] - Ocurrió un error con {username}: {e}")

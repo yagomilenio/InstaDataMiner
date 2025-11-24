@@ -29,11 +29,13 @@ def main():
     get_users_info_cmd.add_argument("-i", "--input-file", help="Fichero con listado de ususarios (usernames)")
     get_users_info_cmd.add_argument("-o", "--output-file", help="Fichero de salida de usuarios ya procesados")
     get_users_info_cmd.add_argument("-la", "--last-output-file", help="Ultimo fichero de salida para poder seguir la ejecución desde ese punto")
+    get_users_info_cmd.add_argument("--output-folder", help="Carpeta destinataria donde se guardaran las fotos de perfil")
 
     get_users_from_user=subparsers.add_parser("getusers", help="Obtiene el listado de seguidos o seguidores de un usuario")
     get_users_from_user.add_argument("-o", "--output-file", help="Fichero de salida de usuarios ya procesados")
     get_users_from_user.add_argument("--followers", action="store_true", help="Exportar solo los seguidores")
     get_users_from_user.add_argument("--following", action="store_true", help="Exportar solo los seguidos")
+    get_users_from_user.add_argument("--output-folder", help="Carpeta destinataria donde se guardaran las fotos de perfil")
 
 
     options=["option", "cleandata", "getgenders", "getusersinfo", "getuserinfo", "getusers"]

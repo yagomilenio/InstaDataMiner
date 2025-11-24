@@ -66,11 +66,16 @@ def process_list(driver, user_list, output_file, id):
 
         with open(output_file, "a", encoding="utf-8") as f:
             for username in usernames:
+                continuar=False
                 if username not in user_list:
+                    continuar=True
                     user_list.append(username)
                     f.write(username + "\n")
                     print(f"ADDED - {username}")
 
+        if not continuar:
+            driver.quit()
+            exit()
 
         actions = ActionChains(driver)
         actions.w3c_actions = ActionBuilder(driver, mouse=PointerInput(interaction.POINTER_TOUCH, "touch"))
