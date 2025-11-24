@@ -35,6 +35,8 @@ def main():
 
     get_users_from_user=subparsers.add_parser("getusers", help="Obtiene el listado de seguidos o seguidores de un usuario")
     get_users_from_user.add_argument("-o", "--output-file", help="Fichero de salida de usuarios ya procesados")
+    get_users_from_user.add_argument("--followers", action="store_true", help="Exportar solo los seguidores")
+    get_users_from_user.add_argument("--following", action="store_true", help="Exportar solo los seguidos")
 
 
     options=["option", "cleandata", "getgenders", "getusersinfo", "getuserinfo", "getusers"]
@@ -57,6 +59,9 @@ def main():
             procesar_datos.calcular_influencia(**func_args)
         if args.option.miner == "getbeauty":
             procesar_datos.calcular_belleza(**func_args)
+    
+    if args.option == "getusers":
+        export_data.main(**func_args)
     
     if args.option == "getuserinfo":
         print(user_info.get_user_info(**func_args))
