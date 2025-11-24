@@ -1,7 +1,4 @@
 import argparse
-from miner import limpiar_datos, procesar_datos
-from dataReader import user_info, export_data
-from proxy import test_proxies
 
 def main():
     parser = argparse.ArgumentParser(
@@ -46,9 +43,14 @@ def main():
 
 
     if args.option == "getproxies":
+        from proxy import test_proxies
+
         test_proxies.main(**func_args)
 
     if args.option == "miner":
+
+        from miner import limpiar_datos, procesar_datos
+
         if args.option.miner == "cleandata":
             limpiar_datos.clean(**func_args)
         if args.option.miner == "getgenders":
@@ -61,12 +63,21 @@ def main():
             procesar_datos.calcular_belleza(**func_args)
     
     if args.option == "getusers":
-        export_data.main(**func_args)
+        from dataReader import user_info, export_data
+
+        if not func_args['following'] and not func_args["followers"]:
+            parser.error("Debes usar --followers, --following o ambos.")
+        else:
+            export_data.main(**func_args)
     
     if args.option == "getuserinfo":
+        from dataReader import user_info, export_data
+
         print(user_info.get_user_info(**func_args))
 
     if args.option == "getusersinfo":
+        from dataReader import user_info, export_data
+
         user_info.get_users_info(**func_args)
 
 

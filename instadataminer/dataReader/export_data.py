@@ -36,7 +36,7 @@ def connect():
         "appium:appActivity": ".MainActivity",
         "appium:noReset": True,
         "appium:uiautomator2ServerInstallTimeout": 90000,
-        "appium:newCommandTimeout": 3200,
+        "appium:newCommandTimeout": 0,
         "appium:connectHardwareKeyboard": True
     })
     return webdriver.Remote("http://127.0.0.1:4723", options=options)
@@ -48,9 +48,19 @@ def split_action(driver, user_list, output_file, followers, following):
         process_list(driver, user_list, output_file, "com.instagram.android:id/row_profile_header_textview_followers_count")
 
 def process_list(driver, user_list, output_file, id):
+    mode = driver.find_elements(AppiumBy.ID, id)
+    if mode:
+        mode[0].click()
+    else:
+        print("[ALERT] - No se encuentra modo de operación")
+        return
+
     while True:
 
-        users = driver.find_elements(AppiumBy.ID, id)
+        users = driver.find_elements(AppiumBy.ID, 'com.instagram.android:id/follow_list_username')
+
+        while len(users) < 9:   #a  veces tarda en cargar hasta que cargue todo no avanza
+            users = driver.find_elements(AppiumBy.ID, 'com.instagram.android:id/follow_list_username')
         
         usernames = [u.get_attribute("text") for u in users]
 
@@ -70,7 +80,18 @@ def process_list(driver, user_list, output_file, id):
         actions.w3c_actions.pointer_action.release()
         actions.perform()
 
-        #era bien meter aqui que si hay hide button que eliminase todos antes de seguir despues de un rato no se iban a volver a generar (mejor aun darle a mas sugerencias y quitar todos antes)
+        hide_buttons=driver.find_elements(AppiumBy.ANDROID_UIAUTOMATOR, 'new UiSelector().resourceId("com.instagram.android:id/row_recommended_hide_icon_button")')
+        num_hide_buttons=len(hide_buttons)
+
+        for i in reversed(range(num_hide_buttons)):
+            try:
+                hide_button = driver.find_element(AppiumBy.ANDROID_UIAUTOMATOR, f'new UiSelector().resourceId("com.instagram.android:id/row_recommended_hide_icon_button").instance({i})')
+                hide_button.click()
+            except Exception as e:
+                print(f"Instance {i} ya no existe: {e}")
+                continue
+        
+        
 
 
 
@@ -80,6 +101,10 @@ def process_list(driver, user_list, output_file, id):
                 ver_mas[0].click()
             except Exception:
                 continue
+
+
+    back=driver.find_element(AppiumBy.ID, 'com.instagram.android:id/action_bar_button_back')
+    back.click()
 
 
 def main(output_file="usuarios.txt", followers=False, following=False):
@@ -94,6 +119,7 @@ def main(output_file="usuarios.txt", followers=False, following=False):
 
             split_action(driver, user_list, output_file, followers, following)
         except Exception:
+            driver.quit()
             continue
 
 
