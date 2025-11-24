@@ -61,7 +61,7 @@ def main(input_folder="proxies-to-test", output_file="proxies-validos", threads=
             result = future.result()
             if result:
                 print(f"{tipo}:{ip}:{port} OK")
-                write_valid_proxy(proxy)
+                write_valid_proxy(proxy, output_file)
             else:
                 print(f"{tipo}:{ip}:{port} FAIL")
 

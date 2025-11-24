@@ -2,48 +2,54 @@ import pandas as pd
 import math
 from proxy import request_proxy
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import cv2
 import numpy as np
-from deepface import DeepFace
-import face_recognition
 import os
 
+import face_recognition
+
 class miner:
-    def __init__(input_file="db.csv"):
+    def __init__(self, input_file="db.csv", output_file="db_out.csv"):
         self.input_file=input_file
+        self.output_file=output_file
         self.df=pd.read_csv(input_file)
 
-    def calcular_genero(name):
+    def calcular_genero(self, name):
         respuesta = request_proxy.request_with_proxy('get', f'https://api.genderize.io/?name={name}', 'gender')
         data = respuesta.json()
         return name, data.get('gender'), data.get('probability')
 
 
 
-    def calcular_genero_from_file(output_file):
-        if output_file is None:
-            output_file = f"{self.input_file}_gen"
+    def calcular_genero_from_file(self):
+        
         resultados = []
 
         with ThreadPoolExecutor(max_workers=70) as executor:
-            futures = {executor.submit(obtener_genero, name): name for name in self.df['Name']}
+            futures = {executor.submit(self.calcular_genero, name): name for name in self.df['name_c']}
 
         for future in as_completed(futures):
             name, genero, probabilidad = future.result()
-            self.df.loc[df["name"] == name, "genero"] = genero
-            self.df.loc[df["name"] == name, "probabilidad"] = probabilidad
+            self.df.loc[self.df["name_c"] == name, "genero"] = genero
+            self.df.loc[self.df["name_c"] == name, "probabilidad"] = probabilidad
 
-        self.df.to_csv(output_file, index=False)
+        
 
-    def calcular_popularidad():
-        self.df['popularidad']=self.df['seguidores']/(self.df['seguidos']+1) + math.log(self.df['publicaciones']+1)
+    def calcular_popularidad(self):
+        self.df['seguidores'] = pd.to_numeric(self.df['seguidores'], errors='coerce').fillna(0).astype(int)
+        self.df['seguidos'] = pd.to_numeric(self.df['seguidos'], errors='coerce').fillna(0).astype(int)
+        self.df['publicaciones'] = pd.to_numeric(self.df['publicaciones'], errors='coerce').fillna(0).astype(int)
+
+        self.df['popularidad'] = self.df['seguidores'] / (self.df['seguidos'] + 1) + np.log(self.df['publicaciones'] + 1)
 
 
-    def calcular_influencia():
-        self.df['influencia']=self.df['seguidores']/(self.df['seguidos']+1)
+    def calcular_influencia(self):
+        self.df['seguidores'] = pd.to_numeric(self.df['seguidores'], errors='coerce').fillna(0).astype(int)
+        self.df['seguidos'] = pd.to_numeric(self.df['seguidos'], errors='coerce').fillna(0).astype(int)
+
+        self.df['influencia'] = self.df['seguidores'] / (self.df['seguidos'] + 1)
 
 
-    def belleza_relativa(image_path):
+    def belleza_relativa(self, image_path):
         # Cargar imagen
         image = face_recognition.load_image_file(image_path)
         
@@ -52,7 +58,7 @@ class miner:
         
         if len(face_locations) == 0:
             # No hay rostro
-            return None
+            return np.nan
         
         # Tomamos el primer rostro detectado
         top, right, bottom, left = face_locations[0]
@@ -68,14 +74,22 @@ class miner:
         
         return score
 
-    def calcular_belleza(input_folder="img"):
+    def calcular_belleza(self, input_folder="img"):
+        from deepface import DeepFace
+        import face_recognition
+        import cv2
         
         for user in self.df['user']:
-            path = f"./{input_folder}/{user}.jpg"
+            path = f"./{input_folder}/{user}.png"
             if not os.path.exists(path):
-                df.loc[df['user'] == user, 'belleza'] = np.nan
+                print(f"[DEBUG] - No hay imagen de perfil de {user}")
+                self.df.loc[self.df['user'] == user, 'belleza'] = np.nan
             else:
-                score = belleza_relativa()
-                df.loc[df['user'] == user, 'belleza'] = score
+                print(f"[DEBUG] - Calculando belleza de {user}")
+                score = self.belleza_relativa(path)
+                self.df.loc[self.df['user'] == user, 'belleza'] = score
+
+    def save_to_csv(self):
+        self.df.to_csv(self.output_file, index=False)
 
 

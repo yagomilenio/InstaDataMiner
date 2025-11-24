@@ -14,7 +14,8 @@ def main():
 
     miner_cmd = subparsers.add_parser("miner", help="Funciones de minado de datos")
     miner_cmd.add_argument("-i", "--input-file", help="Fichero csv de la base de datos")
-    subparsers_miner = miner_cmd.add_subparsers(dest="funcion", required=True)
+    miner_cmd.add_argument("-o", "--output-file", help="Fichero csv de la base de datos resultante")
+    subparsers_miner = miner_cmd.add_subparsers(dest="miner_function", required=True)
     clean_cmd = subparsers_miner.add_parser("cleandata", help="Añade columnas limpias como name y description quitando los emojis y signos raros [name_c, descripcion_c]")
     gender_cmd = subparsers_miner.add_parser("getgenders", help="Obtiene generos basandose en el nombre de usuario")
     popularidad_cmd = subparsers_miner.add_parser("getpopularity", help="Obtiene la popularidad de una persona basandose en los seguidores, seguidos y los posts")
@@ -38,7 +39,7 @@ def main():
     get_users_from_user.add_argument("--output-folder", help="Carpeta destinataria donde se guardaran las fotos de perfil")
 
 
-    options=["option", "cleandata", "getgenders", "getusersinfo", "getuserinfo", "getusers"]
+    options=["option", "miner_function"]
     args = parser.parse_args()
 
     func_args = {k: v for k, v in vars(args).items() if v is not None and k not in options}
@@ -51,18 +52,27 @@ def main():
 
     if args.option == "miner":
 
-        from miner import limpiar_datos, procesar_datos
+        from miner.limpiar_datos import clean
+        from miner.procesar_datos import miner
 
-        if args.option.miner == "cleandata":
-            limpiar_datos.clean(**func_args)
-        if args.option.miner == "getgenders":
-            procesar_datos.calcular_genero_from_file(**func_args)
-        if args.option.miner == "getpopularity":
-            procesar_datos.calcular_popularidad(**func_args)
-        if args.option.miner == "getratio":
-            procesar_datos.calcular_influencia(**func_args)
-        if args.option.miner == "getbeauty":
-            procesar_datos.calcular_belleza(**func_args)
+        if args.miner_function == "cleandata":
+            clean(**func_args)
+        if args.miner_function == "getgenders":
+            m = miner(**func_args)
+            m.calcular_genero_from_file()
+            m.save_to_csv()
+        if args.miner_function == "getpopularity":
+            m = miner(**func_args)
+            m.calcular_popularidad()
+            m.save_to_csv()
+        if args.miner_function == "getratio":
+            m = miner(**func_args)
+            m.calcular_influencia()
+            m.save_to_csv()
+        if args.miner_function == "getbeauty":
+            m = miner(**func_args)
+            m.calcular_belleza()
+            m.save_to_csv()
     
     if args.option == "getusers":
         from dataReader import user_info, export_data
