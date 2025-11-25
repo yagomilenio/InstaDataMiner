@@ -90,8 +90,9 @@ def process_user(driver, username, output_folder):
             search = driver.find_element(by=AppiumBy.ID, value="com.instagram.android:id/search_tab")   
             search.click()
         except Exception:
-            borrar_busqueda=driver.find_element(AppiumBy.ANDROID_UIAUTOMATOR, 'new UiSelector().description("Borrar texto")')
-            borrar_busqueda.click()
+            borrar_busqueda=driver.find_elements(AppiumBy.ANDROID_UIAUTOMATOR, 'new UiSelector().description("Borrar texto")')
+            if borrar_busqueda:
+                borrar_busqueda[0].click()
             driver.press_keycode(4)
 
 
