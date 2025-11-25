@@ -55,6 +55,8 @@ def process_list(driver, user_list, output_file, id):
         print("[ALERT] - No se encuentra modo de operación")
         return
 
+    exit_counter=0
+
     while True:
 
         users = driver.find_elements(AppiumBy.ID, 'com.instagram.android:id/follow_list_username')
@@ -65,15 +67,19 @@ def process_list(driver, user_list, output_file, id):
         usernames = [u.get_attribute("text") for u in users]
 
         with open(output_file, "a", encoding="utf-8") as f:
+            continuar=False
             for username in usernames:
-                continuar=False
                 if username not in user_list:
-                    continuar=True
                     user_list.append(username)
                     f.write(username + "\n")
+                    continuar=True
+                    exit_counter=0
                     print(f"ADDED - {username}")
 
         if not continuar:
+            exit_counter+=1
+
+        if exit_counter >= 1000:
             driver.quit()
             exit()
 

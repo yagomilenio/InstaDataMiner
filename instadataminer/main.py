@@ -36,7 +36,7 @@ def main():
     get_users_from_user.add_argument("-o", "--output-file", help="Fichero de salida de usuarios ya procesados")
     get_users_from_user.add_argument("--followers", action="store_true", help="Exportar solo los seguidores")
     get_users_from_user.add_argument("--following", action="store_true", help="Exportar solo los seguidos")
-    get_users_from_user.add_argument("--output-folder", help="Carpeta destinataria donde se guardaran las fotos de perfil")
+    
 
 
     options=["option", "miner_function"]
