@@ -61,7 +61,7 @@ class UserProfile():
             f")"
         )
 
-def connect(device):
+def connect(device, system_port):
 
     options = AppiumOptions()
     options.load_capabilities({
@@ -73,7 +73,8 @@ def connect(device):
         "appium:noReset": True,
         "appium:uiautomator2ServerInstallTimeout": 90000,
         "appium:newCommandTimeout": 4000,
-        "appium:connectHardwareKeyboard": True
+        "appium:connectHardwareKeyboard": True,
+        "appium:systemPort": system_port
     })
     return webdriver.Remote("http://127.0.0.1:4723", options=options)
 
@@ -191,17 +192,17 @@ def process_user(driver, username, output_folder):
 
 def get_user_info(device, user, output_folder="img"):
 
-    driver=connect(device)
+    driver=connect(device, 8200)
     userProfile = process_user(driver, user, output_folder)
     driver.quit()
     return userProfile
 
 
-def get_users_info(device, input_file="usuarios.txt", output_file="procesed_users.csv", last_output_file="procesed_users.csv", output_folder="img"):
+def get_users_info(device, system_port, input_file="usuarios.txt", output_file="procesed_users.csv", last_output_file="procesed_users.csv", output_folder="img"):
     if not os.path.exists(input_file):
         raise FileNotFoundError(f"El fichero de entrada {input_file} no existe")
 
-    driver = connect(device)
+    driver = connect(device, system_port)
 
     global processed_usernames 
 
@@ -238,17 +239,19 @@ def get_users_info(device, input_file="usuarios.txt", output_file="procesed_user
                     traceback.print_exc()
                     driver.quit()
                     processed.remove(username)
-                    driver = connect(device)
+                    driver = connect(device, system_port)
 
                     continue
 
 
 def get_users_info_multi_device(devices, input_file="usuarios.txt", output_file="procesed_users.csv", last_output_file="procesed_users.csv", output_folder="img"):
     threads = []
+    default_system_port = 8200
     for device in devices:
-        t = Thread(target=get_users_info, args=(device, input_file, output_file, last_output_file, output_folder))
+        t = Thread(target=get_users_info, args=(device, default_system_port, input_file, output_file, last_output_file, output_folder))
         t.start()
         threads.append(t)
+        default_system_port+=1
 
     for t in threads:
         t.join()
