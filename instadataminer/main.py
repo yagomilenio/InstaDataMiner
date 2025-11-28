@@ -28,7 +28,7 @@ def main():
     get_user_info_cmd.add_argument("-u", "--user", help="Usuario del cual se quiere obtener la informacion")
 
     get_users_info_cmd=subparsers.add_parser("getusersinfo", help="Obtiene la informacion de una lista de usuarios")
-    get_users_info_cmd.add_argument("-d", "--devices", nargs="+", required=True, help="Dispositivo adb")    #lista separa por espacios
+    get_users_info_cmd.add_argument("-d", "--device", nargs="+", required=True, help="Dispositivo adb")    #lista separa por espacios
     get_users_info_cmd.add_argument("--emulator", action="store_true", help="Indica que los dispositivos son emuladores y no despositivos fisicos via usb")
     get_users_info_cmd.add_argument("-i", "--input-file", help="Fichero con listado de ususarios (usernames)")
     get_users_info_cmd.add_argument("-o", "--output-file", help="Fichero de salida de usuarios ya procesados")
@@ -96,7 +96,7 @@ def main():
     if args.option == "getusersinfo":
         from dataReader import user_info, export_data
 
-        user_info.get_users_info_multi_device(**func_args)
+        user_info.get_users_info(**func_args)
 
 
 

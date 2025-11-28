@@ -61,7 +61,7 @@ class UserProfile():
             f")"
         )
 
-def connect(device, system_port, emulator):
+def connect(device, emulator):
 
     options = AppiumOptions()
     if emulator:
@@ -74,8 +74,7 @@ def connect(device, system_port, emulator):
             "appium:noReset": True,
             "appium:uiautomator2ServerInstallTimeout": 90000,
             "appium:newCommandTimeout": 4000,
-            "appium:connectHardwareKeyboard": True,
-            "appium:systemPort": system_port
+            "appium:connectHardwareKeyboard": True
         })
     else:
         options.load_capabilities({
@@ -87,8 +86,7 @@ def connect(device, system_port, emulator):
             "appium:noReset": True,
             "appium:uiautomator2ServerInstallTimeout": 90000,
             "appium:newCommandTimeout": 4000,
-            "appium:connectHardwareKeyboard": True,
-            "appium:systemPort": system_port
+            "appium:connectHardwareKeyboard": True
         })
     print(f"[DEBUG] -  puerto system: {system_port}")
     return webdriver.Remote("http://127.0.0.1:4723", options=options)
@@ -207,17 +205,17 @@ def process_user(driver, username, output_folder):
 
 def get_user_info(device, user, emulator, output_folder="img"):
 
-    driver=connect(device, 8200, emulator)
+    driver=connect(device, emulator)
     userProfile = process_user(driver, user, output_folder)
     driver.quit()
     return userProfile
 
 
-def get_users_info(device, emulator, system_port, input_file="usuarios.txt", output_file="procesed_users.csv", last_output_file="procesed_users.csv", output_folder="img"):
+def get_users_info(device, emulator, input_file="usuarios.txt", output_file="procesed_users.csv", last_output_file="procesed_users.csv", output_folder="img"):
     if not os.path.exists(input_file):
         raise FileNotFoundError(f"El fichero de entrada {input_file} no existe")
 
-    driver = connect(device, system_port, emulator)
+    driver = connect(device, emulator)
 
     global processed_usernames 
 
@@ -256,11 +254,11 @@ def get_users_info(device, emulator, system_port, input_file="usuarios.txt", out
                     traceback.print_exc()
                     driver.quit()
                     processed_usernames.remove(username)
-                    driver = connect(device, system_port, emulator)
+                    driver = connect(device, emulator)
 
                     continue
 
-
+"""
 def get_users_info_multi_device(devices, emulator, input_file="usuarios.txt", output_file="procesed_users.csv", last_output_file="procesed_users.csv", output_folder="img"):
     threads = []
     base_system_port = 8200
@@ -275,5 +273,6 @@ def get_users_info_multi_device(devices, emulator, input_file="usuarios.txt", ou
     for t in threads:
         t.join()
 
+ APPIUM NO GESTIONA BIEN TENER DOS SESIONES INDEPENDIENTEMENTE DEL NUMERO DE SERVIDORES LANZADOS EN LA MAQUINA, LO IDONEO ES DESPLEGAR TANTOS DOCKERS COMO SESIONES SE QUIERAN PARA PODER PARALELIZAR
 
-
+"""
