@@ -31,7 +31,7 @@ def connect(device):
     options.load_capabilities({
         "appium:platformName": "Android",
         "appium:automationName": "UiAutomator2",
-        "appium:deviceName": device,
+        "appium:udid": device,
         "appium:appPackage": "com.instagram.android",
         "appium:appActivity": ".MainActivity",
         "appium:noReset": True,
