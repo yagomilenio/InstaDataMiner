@@ -87,11 +87,5 @@ python3 instadataminer/main.py getusers -d DEVICE_ID --followers --following -o 
 👤 **Milenio**
 
 * Website: www.htzone.netlify.app
-* Github: [@yagomilenio](https://github.com/yago\_milenio)
+* Github: [@yagomilenio](https://github.com/yagomilenio)
 
-## Show your support
-
-Give a ⭐️ if this project helped you!
-
-***
-_This README was generated with ❤️ by [readme-md-generator](https://github.com/kefranabg/readme-md-generator)_
