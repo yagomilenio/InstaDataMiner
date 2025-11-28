@@ -76,8 +76,10 @@ def main():
             m.calcular_influencia()
             m.save_to_csv()
         if args.miner_function == "getbeauty":
-            m = miner(**func_args)
-            m.calcular_belleza()
+            init_args = {k: v for k, v in func_args.items() if k in ["input_file", "output_file"]}
+            m = miner(**init_args)
+            beauty_args = {k: v for k, v in func_args.items() if k not in ["input_file", "output_file"]}
+            m.calcular_belleza(**beauty_args)
             m.save_to_csv()
     
     if args.option == "getusers":

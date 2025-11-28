@@ -4,8 +4,11 @@ from proxy import request_proxy
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import numpy as np
 import os
-
+import cv2
+from deepface import DeepFace
 import face_recognition
+from tensorflow.keras.models import load_model
+from .beautyPredict.beauty_predict import beauty_predict
 
 class miner:
     def __init__(self, input_file="db.csv", output_file="db_out.csv"):
@@ -49,8 +52,8 @@ class miner:
         self.df['influencia'] = self.df['seguidores'] / (self.df['seguidos'] + 1)
 
 
-    def belleza_relativa(self, image_path):
-        # Cargar imagen
+    def belleza_relativa(self, path, image_name):
+        """ # Cargar imagen
         image = face_recognition.load_image_file(image_path)
         
         # Detectar rostros
@@ -70,23 +73,27 @@ class miner:
         # Obtener embedding facial con DeepFace
         embedding = DeepFace.represent(face_image_bgr, model_name='Facenet', enforce_detection=False)[0]["embedding"]
         
-        score = np.linalg.norm(embedding)
-        
-        return score
+        score = np.linalg.norm(embedding)"""
 
-    def calcular_belleza(self, input_folder="img"):
+        return beauty_predict(image_path, image_name)
+        
+        #return score
+
+    def calcular_belleza(self, input_img_folder="img"):
         from deepface import DeepFace
         import face_recognition
         import cv2
         
         for user in self.df['user']:
-            path = f"./{input_folder}/{user}.png"
+            path = f"./{input_img_folder}"
+            image_name=f"{user}.png"
             if not os.path.exists(path):
                 print(f"[DEBUG] - No hay imagen de perfil de {user}")
                 self.df.loc[self.df['user'] == user, 'belleza'] = np.nan
             else:
                 print(f"[DEBUG] - Calculando belleza de {user}")
-                score = self.belleza_relativa(path)
+                score = self.belleza_relativa(path, image_name)
+                print(f" - score : {score}")
                 self.df.loc[self.df['user'] == user, 'belleza'] = score
 
     def save_to_csv(self):
