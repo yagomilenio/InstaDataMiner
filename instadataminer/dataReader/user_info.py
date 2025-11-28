@@ -15,6 +15,12 @@ from selenium.webdriver.common.actions.pointer_input import PointerInput
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+from threading import Lock, Thread
+
+processed_lock = Lock()
+processed_usernames = set()
+
+
 
 
 """
@@ -55,13 +61,13 @@ class UserProfile():
             f")"
         )
 
-def connect():
+def connect(device):
 
     options = AppiumOptions()
     options.load_capabilities({
         "appium:platformName": "Android",
         "appium:automationName": "UiAutomator2",
-        "appium:deviceName": "R58N7077SJD",
+        "appium:deviceName": device,
         "appium:appPackage": "com.instagram.android",
         "appium:appActivity": ".MainActivity",
         "appium:noReset": True,
@@ -84,7 +90,7 @@ def save_to_csv(userProfile, output_file):
 
 def process_user(driver, username, output_folder):
 
-        wait = WebDriverWait(driver, 15)
+        wait = WebDriverWait(driver, 2)
 
         try:
             search = driver.find_element(by=AppiumBy.ID, value="com.instagram.android:id/search_tab")   
@@ -108,8 +114,19 @@ def process_user(driver, username, output_folder):
 
         print("[DEBUG] - Obteniendo foto de perfil")
 
-        foto_perfil = wait.until(EC.presence_of_element_located((AppiumBy.ID, "com.instagram.android:id/row_profile_header_imageview")))
-        image_base64 = foto_perfil.screenshot_as_base64
+        try:
+            foto_perfil = wait.until(EC.visibility_of_element_located((AppiumBy.ID, "com.instagram.android:id/row_profile_header_imageview")))
+        except:
+            foto_perfil = None
+
+        if foto_perfil is None:
+            try:
+                foto_perfil = wait.until(EC.visibility_of_element_located((AppiumBy.ID, "com.instagram.android:id/profilePic")))
+            except:
+                foto_perfil = None
+            
+        if foto_perfil is not None:
+            image_base64 = foto_perfil.screenshot_as_base64
 
         os.makedirs(output_folder, exist_ok=True)
         with open(f"./{output_folder}/{username}.png", "wb") as f:
@@ -172,21 +189,22 @@ def process_user(driver, username, output_folder):
 
         return UserProfile(username, nombre_txt, descripcion_txt, publicaciones_txt, seguidores_txt, seguidos_txt, business_txt)
 
-def get_user_info(user, output_folder="img"):
+def get_user_info(device, user, output_folder="img"):
 
-    driver=connect()
+    driver=connect(device)
     userProfile = process_user(driver, user, output_folder)
     driver.quit()
     return userProfile
 
 
-def get_users_info(input_file="usuarios.txt", output_file="procesed_users.csv", last_output_file="procesed_users.csv", output_folder="img"):
+def get_users_info(device, input_file="usuarios.txt", output_file="procesed_users.csv", last_output_file="procesed_users.csv", output_folder="img"):
     if not os.path.exists(input_file):
         raise FileNotFoundError(f"El fichero de entrada {input_file} no existe")
 
-    driver = connect()
+    driver = connect(device)
 
-    procesed_usernames = []
+    global processed_usernames 
+
 
     if os.path.exists(last_output_file):
 
@@ -194,7 +212,7 @@ def get_users_info(input_file="usuarios.txt", output_file="procesed_users.csv", 
             for linea in f:
                 partes = linea.strip().split(",") 
                 if partes:                         
-                    procesed_usernames.append(partes[0])
+                    procesed_usernames.add(partes[0])
 
 
 
@@ -204,7 +222,12 @@ def get_users_info(input_file="usuarios.txt", output_file="procesed_users.csv", 
         for user in users:
 
             username = user.strip()
-            if username not in procesed_usernames:
+
+            with processed_lock:
+                if username in processed_usernames: #si ya fue procesado pasa al siguiente
+                    continue 
+                
+                processed_usernames.add(username) #sino marca este como procesado
 
                 try:
 
@@ -214,9 +237,21 @@ def get_users_info(input_file="usuarios.txt", output_file="procesed_users.csv", 
                     print(f"[ERROR] - Ocurrió un error con {username}: {e}")
                     traceback.print_exc()
                     driver.quit()
-                    driver = connect()
+                    processed.remove(username)
+                    driver = connect(device)
 
                     continue
+
+
+def get_users_info_multi_device(devices, input_file="usuarios.txt", output_file="procesed_users.csv", last_output_file="procesed_users.csv", output_folder="img"):
+    threads = []
+    for device in devices:
+        t = Thread(target=get_users_info, args=(device, input_file, output_file, last_output_file, output_folder))
+        t.start()
+        threads.append(t)
+
+    for t in threads:
+        t.join()
 
 
 

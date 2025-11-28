@@ -26,12 +26,12 @@ from selenium.webdriver.common.actions.pointer_input import PointerInput
 "appium:connectHardwareKeyboard": true
 """
 
-def connect():
+def connect(device):
     options = AppiumOptions()
     options.load_capabilities({
         "appium:platformName": "Android",
         "appium:automationName": "UiAutomator2",
-        "appium:deviceName": "R58N7077SJD",
+        "appium:deviceName": device,
         "appium:appPackage": "com.instagram.android",
         "appium:appActivity": ".MainActivity",
         "appium:noReset": True,
@@ -118,7 +118,7 @@ def process_list(driver, user_list, output_file, id):
     back.click()
 
 
-def main(output_file="usuarios.txt", followers=False, following=False):
+def main(device, output_file="usuarios.txt", followers=False, following=False):
 
     user_list = []
 
@@ -126,7 +126,7 @@ def main(output_file="usuarios.txt", followers=False, following=False):
 
         try:
 
-            driver = connect()
+            driver = connect(device)
 
             split_action(driver, user_list, output_file, followers, following)
         except Exception:
