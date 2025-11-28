@@ -29,6 +29,7 @@ def main():
 
     get_users_info_cmd=subparsers.add_parser("getusersinfo", help="Obtiene la informacion de una lista de usuarios")
     get_users_info_cmd.add_argument("-d", "--devices", nargs="+", required=True, help="Dispositivo adb")    #lista separa por espacios
+    get_users_info_cmd.add_argument("--emulator", action="store_true", help="Indica que los dispositivos son emuladores y no despositivos fisicos via usb")
     get_users_info_cmd.add_argument("-i", "--input-file", help="Fichero con listado de ususarios (usernames)")
     get_users_info_cmd.add_argument("-o", "--output-file", help="Fichero de salida de usuarios ya procesados")
     get_users_info_cmd.add_argument("-la", "--last-output-file", help="Ultimo fichero de salida para poder seguir la ejecución desde ese punto")
@@ -36,6 +37,7 @@ def main():
 
     get_users_from_user=subparsers.add_parser("getusers", help="Obtiene el listado de seguidos o seguidores de un usuario")
     get_users_from_user.add_argument("-d", "--device", required=True, help="Dispositivo adb")
+    get_users_from_user.add_argument("--emulator", action="store_true", help="Indica que los dispositivos son emuladores y no despositivos fisicos via usb")
     get_users_from_user.add_argument("-o", "--output-file", help="Fichero de salida de usuarios ya procesados")
     get_users_from_user.add_argument("--followers", action="store_true", help="Exportar solo los seguidores")
     get_users_from_user.add_argument("--following", action="store_true", help="Exportar solo los seguidos")

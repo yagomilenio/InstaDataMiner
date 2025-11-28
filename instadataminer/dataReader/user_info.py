@@ -61,21 +61,36 @@ class UserProfile():
             f")"
         )
 
-def connect(device, system_port):
+def connect(device, system_port, emulator):
 
     options = AppiumOptions()
-    options.load_capabilities({
-        "appium:platformName": "Android",
-        "appium:automationName": "UiAutomator2",
-        "appium:udid": device,
-        "appium:appPackage": "com.instagram.android",
-        "appium:appActivity": ".MainActivity",
-        "appium:noReset": True,
-        "appium:uiautomator2ServerInstallTimeout": 90000,
-        "appium:newCommandTimeout": 4000,
-        "appium:connectHardwareKeyboard": True,
-        "appium:systemPort": system_port
-    })
+    if emulator:
+        options.load_capabilities({
+            "appium:platformName": "Android",
+            "appium:automationName": "UiAutomator2",
+            "appium:avd": device,
+            "appium:appPackage": "com.instagram.android",
+            "appium:appActivity": ".MainActivity",
+            "appium:noReset": True,
+            "appium:uiautomator2ServerInstallTimeout": 90000,
+            "appium:newCommandTimeout": 4000,
+            "appium:connectHardwareKeyboard": True,
+            "appium:systemPort": system_port
+        })
+    else:
+        options.load_capabilities({
+            "appium:platformName": "Android",
+            "appium:automationName": "UiAutomator2",
+            "appium:udid": device,
+            "appium:appPackage": "com.instagram.android",
+            "appium:appActivity": ".MainActivity",
+            "appium:noReset": True,
+            "appium:uiautomator2ServerInstallTimeout": 90000,
+            "appium:newCommandTimeout": 4000,
+            "appium:connectHardwareKeyboard": True,
+            "appium:systemPort": system_port
+        })
+    print(f"[DEBUG] -  puerto system: {system_port}")
     return webdriver.Remote("http://127.0.0.1:4723", options=options)
 
 
@@ -190,19 +205,19 @@ def process_user(driver, username, output_folder):
 
         return UserProfile(username, nombre_txt, descripcion_txt, publicaciones_txt, seguidores_txt, seguidos_txt, business_txt)
 
-def get_user_info(device, user, output_folder="img"):
+def get_user_info(device, user, emulator, output_folder="img"):
 
-    driver=connect(device, 8200)
+    driver=connect(device, 8200, emulator)
     userProfile = process_user(driver, user, output_folder)
     driver.quit()
     return userProfile
 
 
-def get_users_info(device, system_port, input_file="usuarios.txt", output_file="procesed_users.csv", last_output_file="procesed_users.csv", output_folder="img"):
+def get_users_info(device, emulator, system_port, input_file="usuarios.txt", output_file="procesed_users.csv", last_output_file="procesed_users.csv", output_folder="img"):
     if not os.path.exists(input_file):
         raise FileNotFoundError(f"El fichero de entrada {input_file} no existe")
 
-    driver = connect(device, system_port)
+    driver = connect(device, system_port, emulator)
 
     global processed_usernames 
 
@@ -213,7 +228,7 @@ def get_users_info(device, system_port, input_file="usuarios.txt", output_file="
             for linea in f:
                 partes = linea.strip().split(",") 
                 if partes:                         
-                    procesed_usernames.add(partes[0])
+                    processed_usernames.add(partes[0])
 
 
 
@@ -232,26 +247,30 @@ def get_users_info(device, system_port, input_file="usuarios.txt", output_file="
 
                 try:
 
-                    user_profile = process_user(driver, username, output_folder)
-                    save_to_csv(user_profile, output_file)
+                    print(f"[DEBUG] - Hola desde device: {device}")
+                    time.sleep(1)
+                    #user_profile = process_user(driver, username, output_folder)
+                    #save_to_csv(user_profile, output_file)
                 except Exception as e:
                     print(f"[ERROR] - Ocurrió un error con {username}: {e}")
                     traceback.print_exc()
                     driver.quit()
-                    processed.remove(username)
-                    driver = connect(device, system_port)
+                    processed_usernames.remove(username)
+                    driver = connect(device, system_port, emulator)
 
                     continue
 
 
-def get_users_info_multi_device(devices, input_file="usuarios.txt", output_file="procesed_users.csv", last_output_file="procesed_users.csv", output_folder="img"):
+def get_users_info_multi_device(devices, emulator, input_file="usuarios.txt", output_file="procesed_users.csv", last_output_file="procesed_users.csv", output_folder="img"):
     threads = []
-    default_system_port = 8200
-    for device in devices:
-        t = Thread(target=get_users_info, args=(device, default_system_port, input_file, output_file, last_output_file, output_folder))
+    base_system_port = 8200
+
+    for i, device in enumerate(devices):
+        system_port = base_system_port + i*5
+
+        t = Thread(target=get_users_info, args=(device, emulator, system_port, input_file, output_file, last_output_file, output_folder))
         t.start()
         threads.append(t)
-        default_system_port+=1
 
     for t in threads:
         t.join()
