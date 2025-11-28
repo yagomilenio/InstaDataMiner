@@ -22,7 +22,7 @@ python3 instadataminer/main.py -h
 
 ## Proxy Management
 
-# Get valid proxies
+### Get valid proxies
 
 ```sh
 python3 instadataminer/main.py getproxies -i proxies-folder -o valid_proxies.txt -t 10
@@ -30,31 +30,31 @@ python3 instadataminer/main.py getproxies -i proxies-folder -o valid_proxies.txt
 
 ## Data Mining
 
-# Clean data
+### Clean data
 
 ```sh
 python3 instadataminer/main.py miner -i input.csv -o output.csv cleandata
 ```
 
-# Get genders
+### Get genders
 
 ```sh
 python3 instadataminer/main.py miner -i input.csv -o output.csv getgenders
 ```
 
-# Calculate popularity
+### Calculate popularity
 
 ```sh
 python3 instadataminer/main.py miner -i input.csv -o output.csv getpopularity
 ```
 
-# Calculate follower/following ratio
+### Calculate follower/following ratio
 
 ```sh
 python3 instadataminer/main.py miner -i input.csv -o output.csv getratio
 ```
 
-# Calculate profile beauty
+### Calculate profile beauty
 
 ```sh
 python3 instadataminer/main.py miner -i input.csv -o output.csv getbeauty --input-img-folder images/
@@ -63,19 +63,19 @@ python3 instadataminer/main.py miner -i input.csv -o output.csv getbeauty --inpu
 
 ## Get User Information
 
-# Single user info
+### Single user info
 
 ```sh
 python3 instadataminer/main.py getuserinfo -d DEVICE_ID -u username
 ```
 
-# Multiple users info
+### Multiple users info
 
 ```sh
 python3 instadataminer/main.py getusersinfo -d DEVICE_ID_1 DEVICE_ID_2 -i users_list.csv -o output.csv
 ```
 
-# Get followers/following of a user
+### Get followers/following of a user
 
 ```sh
 python3 instadataminer/main.py getusers -d DEVICE_ID --followers --following -o users.csv
@@ -87,7 +87,7 @@ python3 instadataminer/main.py getusers -d DEVICE_ID --followers --following -o 
 👤 **Milenio**
 
 * Website: www.htzone.netlify.app
-* Github: [@yago\_milenio](https://github.com/yago\_milenio)
+* Github: [@yagomilenio](https://github.com/yago\_milenio)
 
 ## Show your support
 
